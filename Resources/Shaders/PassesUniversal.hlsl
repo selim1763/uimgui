@@ -1,7 +1,6 @@
 #ifndef DEARIMGUI_UNIVERSAL_INCLUDED
 #define DEARIMGUI_UNIVERSAL_INCLUDED
 
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #ifndef UNITY_COLORSPACE_GAMMA
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #endif
@@ -11,7 +10,7 @@
 TEXTURE2D(_Texture);
 SAMPLER(sampler_Texture);
 
-half4 unpack_color(uint c)
+half4 unpack_color(int c)
 {
     half4 color = half4(
         (c      ) & 0xff,

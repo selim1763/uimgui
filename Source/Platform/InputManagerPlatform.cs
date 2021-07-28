@@ -26,9 +26,9 @@ namespace UImGui.Platform
 			base(cursorShapes, iniSettings)
 		{ }
 
-		public override bool Initialize(ImGuiIOPtr io, UIOConfig config, string platformName)
+		public override bool Initialize(ImGuiIOPtr io, UIOConfig config, string platformName, UImGui uImGui)
 		{
-			base.Initialize(io, config, platformName);
+			base.Initialize(io, config, platformName, uImGui);
 
 			SetupKeyboard(io);
 

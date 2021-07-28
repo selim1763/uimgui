@@ -18,14 +18,18 @@ namespace UImGui.Platform
 
 		protected ImGuiMouseCursor _lastCursor = ImGuiMouseCursor.COUNT;
 
+		protected UImGui uImGui;
+
 		internal PlatformBase(CursorShapesAsset cursorShapes, IniSettingsAsset iniSettings)
 		{
 			_cursorShapes = cursorShapes;
 			_iniSettings = iniSettings;
 		}
 
-		public virtual bool Initialize(ImGuiIOPtr io, UIOConfig config, string platformName)
+		public virtual bool Initialize(ImGuiIOPtr io, UIOConfig config, string platformName, UImGui uImGui)
 		{
+			this.uImGui = uImGui;
+			
 			io.SetBackendPlatformName("Unity Input System");
 			io.BackendFlags |= ImGuiBackendFlags.HasMouseCursors;
 

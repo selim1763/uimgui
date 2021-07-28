@@ -1,9 +1,12 @@
+using System.Threading.Tasks;
 using ImGuiNET;
 using UImGui.Assets;
 using UImGui.Platform;
 using UImGui.Renderer;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.SceneManagement;
+
 #if HAS_HDRP
 #endif
 
@@ -77,6 +80,10 @@ namespace UImGui
 		[SerializeField]
 		private bool _doGlobalEvents = true; // Do global/default Layout event too.
 
+		private BoxCollider scrollCollider;
+
+		public BoxCollider ScrollCollider => scrollCollider;
+
 		public CommandBuffer CommandBuffer => _renderCommandBuffer;
 
 		#region Events
@@ -110,6 +117,8 @@ namespace UImGui
 
 		private void OnEnable()
 		{
+			SceneManager.sceneLoaded += OnSceneLoaded;
+			
 			void Fail(string reason)
 			{
 				enabled = false;
@@ -172,6 +181,8 @@ namespace UImGui
 
 		private void OnDisable()
 		{
+			SceneManager.sceneLoaded -= OnSceneLoaded;
+
 			UImGuiUtility.SetCurrentContext(_context);
 			ImGuiIOPtr io = ImGui.GetIO();
 
@@ -217,16 +228,24 @@ namespace UImGui
 
 		private void Update()
 		{
+			if (_camera == null)
+			{
+				_camera = GetComponent<Camera>();
+				if (_camera != null)
+				{
+					Reload();
+				}
+				return;
+			}
+			
 			UImGuiUtility.SetCurrentContext(_context);
 			ImGuiIOPtr io = ImGui.GetIO();
 
 			Constants.PrepareFrameMarker.Begin(this);
 			_context.TextureManager.PrepareFrame(io);
+			
 			_platform.PrepareFrame(io, _camera.pixelRect);
 			ImGui.NewFrame();
-#if !UIMGUI_REMOVE_IMGUIZMO
-			ImGuizmoNET.ImGuizmo.BeginFrame();
-#endif
 			Constants.PrepareFrameMarker.End();
 
 			Constants.LayoutMarker.Begin(this);
@@ -253,7 +272,7 @@ namespace UImGui
 
 		private void Reset()
 		{
-			_camera = Camera.main;
+			_camera = GetComponent<Camera>();
 			_initialConfiguration.SetDefaults();
 		}
 
@@ -268,7 +287,28 @@ namespace UImGui
 		{
 			_platform?.Shutdown(io);
 			_platform = platform;
-			_platform?.Initialize(io, _initialConfiguration, "Unity " + _platformType.ToString());
+			_platform?.Initialize(io, _initialConfiguration, "Unity " + _platformType.ToString(), this);
+		}
+
+		public void SetScrollCollider(BoxCollider scrollCollider)
+		{
+			this.scrollCollider = scrollCollider;
+		}
+		
+		public Camera GetRenderCamera()
+		{
+			return _camera;
+		}
+		
+		private static async void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+		{
+			Camera camera = FindObjectOfType<UImGui>()._camera;
+			await Task.Yield();
+			
+			camera.gameObject.SetActive(false);
+			await Task.Yield();
+			await Task.Yield();
+			camera.gameObject.SetActive(true);
 		}
 	}
 }
